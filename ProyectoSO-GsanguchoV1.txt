@@ -1,0 +1,71 @@
+#-------------------------------------------------------------------------------------------------------------------
+#Consulto y filtro las conexiones por IP
+
+ss -a | awk '{print $6}' | grep 'ffff' | awk -F ":" '{print $4}' | awk -F "]" '{print $1}' > ip.txt
+#cat ip.txt
+#----------------------------------------------------------------------------------------------------
+#Busco el país de origen de cada dirección IP. Genero el fichero de países: "paises.txt"
+
+while IFS=  read -r line
+do
+        echo -e "$line\n"
+        curl https://ipinfo.io/$line | grep city >> paises.txt
+done < ip.txt
+#cat paises.txt
+
+#----------------------------------------------------------------------------------------------------
+echo > ippais.txt
+sed '/^$/d' ippais.txt > ippais.txt  # filtro y borrado de líneas en blanco
+#----------------------------------------------------------------------------------------------------
+#-----------------------Genero fichero informativo con la relacion IP -> PAIS
+
+while IFS=  read -r datos1 && read -r datos2 <&3
+do
+        echo "$datos1 -> $datos2" >> ippais.txt  
+done < ip.txt 3< paises.txt
+
+echo -e "\nRelación de las conexiones: IP -> Ciudad\n"
+cat ippais.txt
+
+#----------------------------------------------------------------------------------------------------
+#Filtro y hago de conteo de las conexiones por país. Genero el fichero "conexiones.txt". Muestra, país : # conexiones
+
+#------------------Script-Conteo: requiere el fichero de paìses como entrada
+echo -e "\nOrígen de las conexiones\n"
+cat paises.txt | sort | uniq > pais_unico.txt
+#------------------Conteo de conexiones
+while IFS= read -r datos
+do
+        echo "$datos"
+        cat paises.txt | grep "$datos" | wc -l >> result.txt
+done < pais_unico.txt
+#
+#echo "conteo de conexiones"
+#cat result.txt
+#-------------------Construcción del conteo de conexiones
+while  IFS= read -r datos1 && read -r datos2 <&3
+do
+        echo "$datos1 ----> $datos2 conexiones" >> conexiones.txt
+done < pais_unico.txt 3< result.txt
+#-------------------Presentación de conteo de conexiones
+echo -e "\n Resumen de conexiones"
+cat conexiones.txt
+#-------------------Borrado de ficheros
+echo > conexiones.txt
+echo > result.txt
+echo > paises.txt
+sed '/^$/d' conexiones.txt >conexiones.txt  # filtro y borrado de líneas en blanco
+sed '/^$/d' result.txt >result.txt  # filtro y borrado de líneas en blanco
+sed '/^$/d' paises.txt >paises.txt  # filtro y borrado de líneas en blanco
+
+
+
+
+
+
+
+
+
+
+
+
